@@ -3,8 +3,9 @@ import { FaceDetector,FilesetResolver } from '@mediapipe/tasks-vision';
 // Stores the active camera stream globally
 let stream = null;
 let faceDetector = null; 
-let lastVideo = -1;
 const cameraOnOffBtn = document.getElementById('camera-on-off-btn');
+let detectedFaceCount = null;
+let currentTimeDetectionData = [];
 
 // 1. initialize mediapipe
 async function initializeMediaPipe() {
@@ -17,7 +18,7 @@ async function initializeMediaPipe() {
             modelAssetPath: "app/shared/models/blaze_face_short_range.tflite",
             delegate: 'CPU'
         },
-        minDetectionConfidence: 0.5,
+        minDetectionConfidence: 0.8,
         minSuppressionThreshold: 0.3,
         runningMode: 'VIDEO'
     });
@@ -52,7 +53,10 @@ async function turnOnCamera () {
             videoElement.srcObject = stream;
             videoElement.onloadedmetadata = () => {
                 videoElement.play();
-                startDetection()
+                startDetection();
+                console.log('num of faces detected',detectedFaceCount);
+                
+                
             }
             console.log("this is the stream",stream);
         }
@@ -92,40 +96,62 @@ function drawBoundingBox(boundingBox, ctx) {
     );
 }
 
-async function startDetection() {
+function startDetection() {
+
     const videoElement = document.getElementById('webcam_footage');
-    const htmlCanvasElement = document.getElementById('webcam_canvas');
     const canvasElement = document.getElementById('webcam_canvas');
     const ctx = canvasElement.getContext('2d');
-    htmlCanvasElement.width = videoElement.videoWidth;
-    htmlCanvasElement.height = videoElement.videoHeight;
-    
-    if (videoElement.currentTime !== lastVideo) {
-        lastVideo = videoElement.currentTime;
 
-        const startTimeMs = performance.now();
-        const results = faceDetector.detectForVideo(videoElement,startTimeMs);
+    canvasElement.width = videoElement.videoWidth;
+    canvasElement.height = videoElement.videoHeight;
+    //cuurent time
+    const startTimeMs = performance.now();
 
-        // Clear canvas, draw current frame, then draw detections
-        ctx.clearRect(0, 0, htmlCanvasElement.width, htmlCanvasElement.height);
-        ctx.drawImage(videoElement, 0, 0, htmlCanvasElement.width, htmlCanvasElement.height);
+    const results = faceDetector.detectForVideo(
+        videoElement,
+        startTimeMs// telling media pipe to start detecting the img of the current time frame
+    );
 
-        if(results.detections) {
-            for(const detections  of results.detections) {
-                drawBoundingBox(detections.boundingBox,ctx);
-            }
+    ctx.clearRect(0,0,canvasElement.width,canvasElement.height);
+
+    ctx.drawImage(videoElement,0,0,canvasElement.width,canvasElement.height);
+
+    if (results.detections) {
+        for (const detection of results.detections) {
+            drawBoundingBox(
+                detection.boundingBox,
+                ctx
+            );
+            console.log(detection);
+            
         }
     }
+
+    currentTimeDetectionData = results.detections;
+
+    
+    requestAnimationFrame(startDetection);
+
+    detectedFaceCount = results.detections.length;
+    console.log('numner of faces',detectedFaceCount);
 }
 
-
-
+function takePhoto() {
+    const photoButton = document.getElementById("clickPhoto");
+    if (detectedFaceCount == 1) {
+        console.log('eligible for clicking the btn'); 
+        if(currentTimeDetectionData.length === 1){
+            console.log('detected value when taken a photo is ',currentTimeDetectionData[0]);
+            console.log(currentTimeDetectionData[0].data.keypoints);
+        }  
+    }
+}
 async function init() {
     await initializeMediaPipe();
 
     cameraOnOffBtn.addEventListener('click', async () => {
         await turnOnCamera();
-
+        takePhoto();
     });
 }
 
