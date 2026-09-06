@@ -122,7 +122,7 @@ function startDetection() {
                 detection.boundingBox,
                 ctx
             );
-            console.log(detection);
+            // console.log(detection);
             
         }
     }
@@ -134,25 +134,74 @@ function startDetection() {
 
     detectedFaceCount = results.detections.length;
     console.log('numner of faces',detectedFaceCount);
+
+}
+
+function cropByBBox(canvas,bbox, padding = 0.5){
+    const ctx = canvas.getContext('2d');
+
+    const padX = bbox.width * padding;
+    const padY = bbox.height * padding;
+
+    const x = Math.max(0, bbox.originX - padX);
+    const y = Math.max(0, bbox.originY - padY);
+
+    const right = Math.min(canvas.width, bbox.originX + bbox.width +padX);
+    const bottom = Math.min(canvas.height, bbox.originY + bbox.height + padY);
+
+    const width = right - x;
+    const height = bottom - y;
+
+    //temp canvas for stroing the result
+    const croppedCanvas = document.createElement('canvas');
+    croppedCanvas.width = width;
+    croppedCanvas.height = height;
+
+    const croppedCtx = croppedCanvas.getContext('2d');
+
+    const pixelData = ctx.getImageData(x, y, width, height);
+
+    croppedCtx.putImageData(pixelData,0,0);
+
+    return croppedCanvas
 }
 
 function takePhoto() {
-    const photoButton = document.getElementById("clickPhoto");
+    const webcam_canvas = document.getElementById('webcam_canvas');
     if (detectedFaceCount == 1) {
+
         console.log('eligible for clicking the btn'); 
+
         if(currentTimeDetectionData.length === 1){
+
+            let keypoints = currentTimeDetectionData[0].keypoints;
+            let boundingBox = currentTimeDetectionData[0].boundingBox;
+
+            const croppedImg = cropByBBox(webcam_canvas,boundingBox);
+
+            //for displaying the cropped image
+            document.body.appendChild(croppedImg);
+
             console.log('detected value when taken a photo is ',currentTimeDetectionData[0]);
-            console.log(currentTimeDetectionData[0].data.keypoints);
+            console.log('keypoint',currentTimeDetectionData[0].keypoints);
+            console.log('bounding-box',currentTimeDetectionData[0].boundingBox);
+
+            return keypoints,boundingBox,croppedImg
         }  
     }
 }
+
 async function init() {
     await initializeMediaPipe();
-
+    const photoButton = document.getElementById("clickPhoto");
     cameraOnOffBtn.addEventListener('click', async () => {
         await turnOnCamera();
-        takePhoto();
     });
+    photoButton.addEventListener('click', async () => {
+        takePhoto();
+        
+    })
+
 }
 
 init();
