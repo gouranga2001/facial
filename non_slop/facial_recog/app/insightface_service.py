@@ -88,15 +88,15 @@ if __name__ == "__main__":
 
 """
 For production,:
-- Threshold calibration using your actual users/photos; don't hardcode 0.40/0.30.
-- Multiple-face handling — don't blindly use faces[0].
-- Face quality checks — size, blur, pose, lighting.
-- Liveness/anti-spoofing if attendance can be abused with photos/screens.
-- Embedding storage securely; embeddings are biometric data.
-- Error handling + structured API responses in FastAPI.
-- Model loaded once at startup, not per request.
-- Request size/type validation for uploaded images.
-- Logging without storing sensitive image data.
-- Enrollment validation — ensure exactly one good face.
-- Performance/load testing on your actual CPU/server.
+- [X] Threshold calibration using your actual users/photos; don't hardcode 0.40/0.30.
+- [X]  Multiple-face handling — don't blindly use faces[0].
+- [X]  Face quality checks — size, blur, pose, lighting.
+- [X]  Liveness/anti-spoofing if attendance can be abused with photos/screens.
+- []  Embedding storage securely; embeddings are biometric data.
+- []  Error handling + structured API responses in FastAPI.
+- []  Model loaded once at startup, not per request.
+- []  Request size/type validation for uploaded images.
+- []  Logging without storing sensitive image data.
+- []  Enrollment validation — ensure exactly one good face.
+- []  Performance/load testing on your actual CPU/server.
 """
