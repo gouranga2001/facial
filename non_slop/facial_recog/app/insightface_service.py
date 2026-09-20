@@ -1,3 +1,5 @@
+import threading
+
 import insightface
 import cv2 as cv
 import numpy as np
@@ -5,6 +7,11 @@ import logging
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
+
+# onnxruntime sessions are not guaranteed safe for concurrent .run() calls
+# from multiple threads. Since routes now run in FastAPI's threadpool,
+# serialize access to the shared FaceAnalysis instance with this lock.
+inference_lock = threading.Lock()
 
 
 def decode_image_from_upload(file_bytes):
@@ -30,16 +37,25 @@ def load_image(path):
         raise FileNotFoundError(f"Could not read image at: {path}")
     return img
 
-#genereates 5 keypoints different from what mediapipe genereates
+
+def _face_area(face):
+    x1, y1, x2, y2 = face.bbox
+    return (x2 - x1) * (y2 - y1)
+
+
+# generates 5 keypoints, different from what mediapipe generates
 def get_face(app, img):
-    faces = app.get(img)
+    with inference_lock:
+        faces = app.get(img)
     if not faces:
         return None
-    face = faces[0]
-    return face 
+    # pick the largest face by bbox area rather than detection order,
+    # so a background face/poster doesn't get embedded by accident
+    face = max(faces, key=_face_area)
+    return face
 
 
-def get_embedding(app, img,):
+def get_embedding(app, img):
     face = get_face(app, img)
     if face is None:
         raise ValueError("No usable face detected in image")
@@ -85,18 +101,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-"""
-For production,:
-- [X] Threshold calibration using your actual users/photos; don't hardcode 0.40/0.30.
-- [X]  Multiple-face handling — don't blindly use faces[0].
-- [X]  Face quality checks — size, blur, pose, lighting.
-- [X]  Liveness/anti-spoofing if attendance can be abused with photos/screens.
-- []  Embedding storage securely; embeddings are biometric data.
-- []  Error handling + structured API responses in FastAPI.
-- []  Model loaded once at startup, not per request.
-- []  Request size/type validation for uploaded images.
-- []  Logging without storing sensitive image data.
-- []  Enrollment validation — ensure exactly one good face.
-- []  Performance/load testing on your actual CPU/server.
-"""
