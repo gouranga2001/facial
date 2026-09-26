@@ -7,21 +7,44 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Laravel\Sanctum\HasApiTokens;
+
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasUuids;
 
     /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
      */
+
+    protected $fillable = [
+        'uuid',
+        'organisation_id',
+        'first_name',
+        'last_name',
+        'email',
+        'employee_id',
+        'status',
+        'email_verified_at',
+        'last_login_at',
+    ];
+
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
+    }
+
     protected function casts(): array
     {
         return [
@@ -29,4 +52,16 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Roles:: class);
+    }
+
+    public function hasRole(string $slug): bool
+    {
+        return $this-> role->slug === $slug;
+    }
+
+    
 }
