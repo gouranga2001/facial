@@ -12,6 +12,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Laravel\Sanctum\HasApiTokens;
+use App\Enums\UserStatus;
 
 
 #[Fillable(['name', 'email', 'password'])]
@@ -34,22 +35,17 @@ class User extends Authenticatable
         'last_name',
         'email',
         'employee_id',
-        'status',
         'email_verified_at',
         'last_login_at',
     ];
 
-
-    public function uniqueIds(): array
-    {
-        return ['uuid'];
-    }
 
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'status' => UserStatus::class,
         ];
     }
 
