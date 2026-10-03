@@ -8,11 +8,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StudentProfile extends Model
 {
+    protected $primaryKey = 'user_id';
+    public $incrementing = false;
+    public $timestamps = false;
+
     protected $fillable = [
         'user_id',
         'roll_number',
-        'batch',
-        'semester'
+        'semester',
     ];
 
     public function user(): BelongsTo

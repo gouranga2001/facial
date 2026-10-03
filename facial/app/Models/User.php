@@ -29,16 +29,19 @@ class User extends Authenticatable
      */
 
     protected $fillable = [
-        'uuid',
-        'organisation_id',
-        'first_name',
-        'last_name',
-        'email',
-        'employee_id',
-        'email_verified_at',
-        'last_login_at',
+    'uuid',
+    'organisation_id',
+    'role_id',
+    'stream_id',
+    'first_name',
+    'last_name',
+    'email',
+    'password',
+    'employee_id',
+    'status',
+    'email_verified_at',
+    'last_login_at',
     ];
-
 
     protected function casts(): array
     {
@@ -59,5 +62,13 @@ class User extends Authenticatable
         return $this-> role->slug === $slug;
     }
 
+    public function stream(): BelongsTo
+    {
+        return $this->belongsTo(Stream::class, 'stream_id', 'code');
+    }
     
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
+    }
 }

@@ -70,3 +70,10 @@ Create Table: CREATE TABLE `users` (
 ```
 
 ### for verson 1 we will go with student_profiles 
+
+**need to add FK constraint of stream_id from student_profiles and changein models as well**
+
+#### 3rd-oct working on auth 
+#### next is definning ploicies like who can add a user,delete a user,modify a user's data, etc
+
+#### anybody can come and create an organisation and then invite its users the person creating the organisation will get the role "organisation_admin" automatically and the he/she can she can send role based invites to its users

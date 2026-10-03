@@ -12,7 +12,7 @@ class Routine extends Model
         'organisation_id',
         'subject_id',
         'teacher_id',
-        'batch',
+        'stream_id',
         'semester',
         'day_of_week',
         'period_number',
@@ -44,5 +44,15 @@ class Routine extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+    
+    public function stream(): BelongsTo
+    {
+        return $this->belongsTo(Stream::class, 'stream_id', 'code');
+    }
+
+    public function teacher(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'teacher_id');
     }
 }

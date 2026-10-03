@@ -1,0 +1,83 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Organisation;
+use App\Models\Role;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+
+class AuthController extends Controller
+{
+    public function showRegister()
+    {
+        // return view('auth.register');
+    }
+
+    // Public: creates an organisation and its first admin
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'organisation_name' => ['required', 'string', 'max:255'],
+            'first_name'        => ['required', 'string', 'max:100'],
+            'last_name'         => ['nullable', 'string', 'max:100'],
+            'email'             => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password'          => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = DB::transaction(function () use ($validated) {
+            $org = Organisation::create(['name' => $validated['organisation_name']]);
+
+            return User::create([
+                'organisation_id' => $org->id,
+                'role_id'         => Role::where('slug', 'organisation_admin')->value('id'),
+                'first_name'      => $validated['first_name'],
+                'last_name'       => $validated['last_name'] ?? null,
+                'email'           => $validated['email'],
+                'password'        => $validated['password'], // hashed by the cast
+            ]);
+        });
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        // return redirect()->route('dashboard');
+    }
+
+    // public function showLogin()
+    // {
+    //     return view('auth.login');
+    // }
+
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email'    => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ]);
+
+        // 'status' => 'active' makes inactive/suspended/pending users fail too
+        if (! Auth::attempt($credentials + ['status' => 'active'], $request->boolean('remember'))) {
+            return back()
+                ->withErrors(['email' => 'Invalid credentials or inactive account.'])
+                ->onlyInput('email');
+        }
+
+        $request->session()->regenerate();
+
+        $request->user()->forceFill(['last_login_at' => now()])->save();
+
+        // return redirect()->intended(route('dashboard'));
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        // return redirect()->route('login');
+    }
+}
