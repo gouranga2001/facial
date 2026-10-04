@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Organisation;
-use App\Models\Role;
+use App\Models\Roles;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,11 +28,15 @@ class AuthController extends Controller
         ]);
 
         $user = DB::transaction(function () use ($validated) {
-            $org = Organisation::create(['name' => $validated['organisation_name']]);
+            $org = Organisation::create([
+                'name' => $validated['organisation_name'],
+                ]);
+            
+            $adminRoleId = Roles::where('slug', 'organisation_admin')->firstOrFail()->id;
 
             return User::create([
                 'organisation_id' => $org->id,
-                'role_id'         => Role::where('slug', 'organisation_admin')->value('id'),
+                'role_id'         => $adminRoleId,
                 'first_name'      => $validated['first_name'],
                 'last_name'       => $validated['last_name'] ?? null,
                 'email'           => $validated['email'],
@@ -43,13 +47,18 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        // return redirect()->route('dashboard');
+        return redirect()->route('login');
     }
 
-    // public function showLogin()
-    // {
-    //     return view('auth.login');
-    // }
+    public function showLogin()
+    {
+        return view('login');
+    }
+
+    public function showSetup()
+    {
+        return view('setup');
+    }
 
     public function login(Request $request)
     {

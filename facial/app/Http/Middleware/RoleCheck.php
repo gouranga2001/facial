@@ -22,13 +22,10 @@ class RoleCheck
             abort(401, 'unauthorised');
         }
 
-       if (! $request->user()->hasRole($role)) {
+       if (! $user->hasRole($role)) {
             abort(403, 'invalid role');
        }
 
-       if (! $request->user()->hasRole('super_admin')) {
-            abort(403, 'donot have super_admin privileges');
-       }
 
 
         return $next($request);
