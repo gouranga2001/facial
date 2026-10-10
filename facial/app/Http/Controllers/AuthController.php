@@ -63,12 +63,11 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email'    => ['required', 'email'],
+            'email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
 
-        // 'status' => 'active' makes inactive/suspended/pending users fail too
-        if (! Auth::attempt($credentials + ['status' => 'active'], $request->boolean('remember'))) {
+        if (! Auth::attempt($credentials + ['status' => 'active'])) {
             return back()
                 ->withErrors(['email' => 'Invalid credentials or inactive account.'])
                 ->onlyInput('email');
@@ -76,11 +75,19 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        $request->user()->forceFill(['last_login_at' => now()])->save();
+        $user = $request->user();
 
-        // return redirect()->intended(route('dashboard'));
+        $user->forceFill([
+            'last_login_at' => now(),
+        ])->save();
+
+        if ($user->hasRole('super_admin')) {
+            return redirect()->intended('/admin/dashboard');
+        }
+
+        return redirect()->intended('/dashboard');
     }
-
+    
     public function logout(Request $request)
     {
         Auth::logout();
