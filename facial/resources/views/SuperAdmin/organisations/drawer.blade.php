@@ -87,8 +87,8 @@
         </button>
     </form>
 
-    {{-- Danger zone --}}
-    <form data-org-form="delete" method="POST" action="{{ route('superadmin.organisations.destroy', $organisation->uuid) }}"
+
+    {{-- <form data-org-form="delete" method="POST" action="{{ route('superadmin.organisations.destroy', $organisation->uuid) }}"
           data-confirm="Delete “{{ $organisation->name }}”? This cannot be undone."
           class="space-y-3 rounded-2xl border border-red-600/20 bg-red-50/40 p-4">
         @csrf
@@ -112,5 +112,5 @@
                 class="w-full rounded-xl border border-red-600/30 bg-white px-5 py-2.5 text-sm font-bold text-red-700 transition hover:bg-red-600 hover:text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-600/20 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-red-700">
             Delete organisation
         </button>
-    </form>
+    </form> --}}
 </div>

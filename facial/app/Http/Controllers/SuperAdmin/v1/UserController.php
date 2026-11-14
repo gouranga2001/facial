@@ -53,7 +53,7 @@ class UserController extends Controller
             ->paginate(15)
             ->appends(array_filter($filters));
 
-        return view('SuperAdmin.index', [
+        return view('SuperAdmin.users.index', [
             'users'         => $users,
             'filters'       => $filters,
             'statuses'      => $statuses,
@@ -86,7 +86,7 @@ class UserController extends Controller
 
         Gate::authorize('view', $user);
 
-        return view('SuperAdmin.drawer', ['user' => $user]);
+        return view('SuperAdmin.users.drawer', ['user' => $user]);
     }
 }
 
